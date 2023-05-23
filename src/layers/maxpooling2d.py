@@ -1,6 +1,8 @@
 import numpy as np
+from .layer import Layer
 
-class MaxPool2D:
+
+class MaxPool2D(Layer):
     def __init__(self, kernel_size=(3, 3), stride=(1, 1), mode="max"):
         """
         Max pooling layer.
@@ -13,7 +15,7 @@ class MaxPool2D:
         self.stride = (stride, stride) if isinstance(stride, int) else stride
         self.kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
         self.mode = mode
-    
+
     def target_shape(self, input_shape):
         """
         Calculate the shape of the output of the layer.
@@ -26,7 +28,7 @@ class MaxPool2D:
         H = None
         W = None
         return H, W
-    
+
     def forward(self, A_prev):
         """
         Forward pass for max pooling layer.
@@ -58,7 +60,7 @@ class MaxPool2D:
                             raise ValueError("Invalid mode")
 
         return A
-    
+
     def create_mask_from_window(self, x):
         """
         Create a mask from an input matrix x, to identify the max entry of x.
@@ -70,7 +72,7 @@ class MaxPool2D:
         # TODO: Implement create_mask_from_window
         mask = x == None
         return mask
-    
+
     def distribute_value(self, dz, shape):
         """
         Distribute the input value in the matrix of dimension shape.
@@ -85,7 +87,7 @@ class MaxPool2D:
         average = None
         a = np.ones(shape) * None
         return a
-    
+
     def backward(self, dZ, A_prev):
         """
         Backward pass for max pooling layer.
@@ -120,5 +122,3 @@ class MaxPool2D:
                             raise ValueError("Invalid mode")
         # Don't change the return
         return dA_prev, None
-    
-    

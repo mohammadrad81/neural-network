@@ -1,10 +1,11 @@
 import numpy as np
+from .loss import Loss
 
-class BinaryCrossEntropy:
+class BinaryCrossEntropy(Loss):
     def __init__(self) -> None:
         pass
 
-    def compute(self, y_hat: np.ndarray, y: np.ndarray) -> float:
+    def compute(self, y_pred: np.ndarray, y_true: np.ndarray):
         """
         Computes the binary cross entropy loss.
             args:
@@ -14,11 +15,10 @@ class BinaryCrossEntropy:
                 binary cross entropy loss
         """
         # TODO: Implement binary cross entropy loss
-        batch_size = None
-        cost = None
-        return np.squeeze(cost)
+        y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
+        return -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
 
-    def backward(self, y_hat: np.ndarray, y: np.ndarray) -> np.ndarray:
+    def backward(self, y_pred: np.ndarray, y_true: np.ndarray) -> np.ndarray:
         """
         Computes the derivative of the binary cross entropy loss.
             args:
@@ -29,5 +29,5 @@ class BinaryCrossEntropy:
         """
         # hint: use the np.divide function
         # TODO: Implement backward pass for binary cross entropy loss
-        return None
-
+        y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
+        return (y_pred - y_true) / (y_pred * (1 - y_pred)) / y_true.size

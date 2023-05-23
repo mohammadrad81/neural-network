@@ -1,17 +1,25 @@
-from layers.convolution2d import Conv2D
-from layers.maxpooling2d import MaxPool2D
-from layers.fullyconnected import FC
+from src.layers.convolution2d import Conv2D
+from src.layers.maxpooling2d import MaxPool2D
+from src.layers.fullyconnected import FC
 
-from activations import Activation, get_activation
-
+from src.activations import Activation
+from src.layers.layer import Layer
+from src.losses.loss import Loss
 import pickle
 import tqdm
 import numpy as np
-import matplotlib.pyplot as plt
-from random import shuffle
+from typing import Tuple, Dict, List
+from src.losses.binarycrossentropy import BinaryCrossEntropy
+from src.losses.meansquarederror import MeanSquaredError
+from src.optimizers.gradientdescent import GD
+from src.optimizers.adam import Adam
 
 class Model:
-    def __init__(self, arch, criterion, optimizer, name=None):
+    def __init__(self,
+                 layers_list: List[Tuple[str, MaxPool2D | FC | Conv2D]],
+                 criterion: MeanSquaredError | BinaryCrossEntropy,
+                 optimizer: Adam | GD,
+                 name: str=None):
         """
         Initialize the model.
         args:
@@ -21,10 +29,10 @@ class Model:
             name: name of the model
         """
         if name is None:
-            self.model = arch
-            self.criterion = criterion
-            self.optimizer = optimizer
-            self.layers_names = list(arch.keys())
+            self.model: Dict[str, Layer] = {l[0]: l[1] for l in layers_list}
+            self.criterion: Loss = criterion
+            self.optimizer: Adam | GD = optimizer
+            self.layers_names = [l[0] for l in layers_list]
         else:
             self.model, self.criterion, self.optimizer, self.layers_names = self.load_model(name)
     
@@ -37,7 +45,7 @@ class Model:
             True if the layer is a layer, False otherwise
         """
         # TODO: Implement check if the layer is a layer
-        return None
+        return isinstance(layer, Layer)
 
     def is_activation(self, layer):
         """
@@ -48,9 +56,9 @@ class Model:
             True if the layer is an activation function, False otherwise
         """
         # TODO: Implement check if the layer is an activation
-        return None
+        return isinstance(layer, Activation)
     
-    def forward(self, x):
+    def forward(self, x: np.ndarray):
         """
         Forward pass through the model.
         args:
@@ -58,15 +66,15 @@ class Model:
         returns:
             output of the model
         """
-        tmp = []
         A = x
+        tmp = [x]
         # TODO: Implement forward pass through the model
         # NOTICE: we have a pattern of layers and activations
-        for l in range(None):
-            Z = None
-            tmp.append(None)    # hint add a copy of Z to tmp
-            A = None
-            tmp.append(None)    # hint add a copy of A to tmp
+        for l in range(0, len(self.layers_names), 2):
+            Z = self.model[self.layers_names[l]].forward(A)
+            tmp.append(Z)    # hint add a copy of Z to tmp
+            A = self.model[self.layers_names[l + 1]].forward(Z)
+            tmp.append(A)    # hint add a copy of A to tmp
         return tmp
     
     def backward(self, dAL, tmp, x):
@@ -84,14 +92,15 @@ class Model:
         # TODO: Implement backward pass through the model
         # NOTICE: we have a pattern of layers and activations
         # for from the end to the beginning of the tmp list
-        for l in range(None):
-            if l > 2:
-                Z, A = tmp[l - 1], tmp[l - 2]
-            else:
-                Z, A = tmp[l - 1], x
-            dZ = None
-            dA, grad = None
-            grads[self.layers_names[l - 1]] = None
+        # print(f"len of tmp: {len(tmp)}")
+        for l in range(len(tmp), 2, -2):
+            # print('in for of backward')
+            A_prev, Z, A = tmp[l - 3], tmp[l - 2], tmp[l - 1]
+            activation_layer: Activation = self.model[self.layers_names[l - 2]]
+            dZ = activation_layer.backward(dA, Z)
+            layer: Layer = self.model[self.layers_names[l - 3]]
+            dA, grad = layer.backward(dZ, A_prev)
+            grads[self.layers_names[l - 3]] = grad
         return grads
 
     def update(self, grads):
@@ -100,9 +109,12 @@ class Model:
         args:
             grads: gradients of the model
         """
-        for None:
-            if None:    # hint check if the layer is a layer and also is not a maxpooling layer
-                self.model[None].update(None)
+        for name in grads.keys():
+            layer = self.model[name]
+            # print(f'layer_name: {name}')
+            if isinstance(layer, Layer) and not isinstance(layer, MaxPool2D):    # hint check if the layer is a layer and also is not a maxpooling layer
+                # print("in model update if passed")
+                self.model[name].update(self.optimizer, grads)
     
     def one_epoch(self, x, y):
         """
@@ -115,12 +127,12 @@ class Model:
             loss
         """
         # TODO: Implement one epoch of training
-        tmp = None
-        AL = tmp[None]
-        loss = None
-        dAL = None
-        grads = None
-        self.update(None)
+        tmp = self.forward(x)
+        AL = tmp[-1]
+        loss = self.criterion.compute(AL, y)
+        dAL = self.criterion.backward(AL, y)
+        grads = self.backward(dAL, tmp, x)
+        self.update(grads)
         return loss
     
     def save(self, name):
@@ -163,19 +175,18 @@ class Model:
             bx, by: batch of data
         """
         # TODO: Implement batch
-        last_index = None   # hint last index of the batch check for the last batch
-        batch = order[None: None]
+        # last_index =    # hint last index of the batch check for the last batch
+        batch = order[batch_size * index: batch_size * (index + 1)]
         # NOTICE: inputs are 4 dimensional or 2 demensional
-        if None:
-            bx = None
-            by = None
-            return None, None
-        else:
-            bx = None
-            by = None
-            return None, None
+        # if len(X.shape) == 2:
+        bx = X[batch]
+        by = y[batch]
+        # else: # X is 4 dimensional
+        #     bx = None
+        #     by = None
+        return bx, by
 
-    def compute_loss(self, X, y, batch_size):
+    def compute_loss(self, X, y, batch_size): #???
         """
         Compute the loss.
         args:
@@ -186,7 +197,7 @@ class Model:
             loss
         """
         # TODO: Implement compute loss
-        m = None
+        m = X.shape[0]
         order = None
         cost = 0
         for b in range(m // batch_size):
@@ -196,7 +207,7 @@ class Model:
             cost += None
         return cost
 
-    def train(self, X, y, epochs, val=None, batch_size=3, shuffling=False, verbose=1, save_after=None):
+    def train(self, X, y, epochs, val=None, batch_size=1000, shuffling=False, verbose=1, save_after=None):
         """
         Train the model.
         args:
@@ -213,16 +224,19 @@ class Model:
         train_cost = []
         val_cost = []
         # NOTICE: if your inputs are 4 dimensional m = X.shape[0] else m = X.shape[1]
-        m = None
-        for e in tqdm(1, epochs + 1):
-            order = self.shuffle(None, None)
-            cost = 0
-            for b in range(None):
-                bx, by = None
-                cost += None
-            train_cost.append(None)
+        m = X.shape[0]
+        # print(f"before epoch for")
+        for e in range(1, epochs + 1):
+            # order = self.shuffle(m, shuffling)
+            # cost = 0
+            # for b in range(m // batch_size):
+            #     bx, by = self.batch(X, y, batch_size, b, order)
+            #     print(f'batch number: {b}')
+            #     cost += self.one_epoch(bx, by)
+            cost = self.one_epoch(X, y)
+            train_cost.append(cost)
             if val is not None:
-                val_cost.append(None)
+                val_cost.append(self.forward(X)[-1])
             if verbose != False:
                 if e % verbose == 0:
                     print("Epoch {}: train cost = {}".format(e, cost))
@@ -241,4 +255,4 @@ class Model:
             predictions
         """
         # TODO: Implement prediction
-        return None
+        return self.forward(X)[-1]
