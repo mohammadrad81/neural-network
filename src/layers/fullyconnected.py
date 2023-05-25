@@ -1,5 +1,5 @@
 import numpy as np
-from .layer import Layer
+from src.layers.layer import Layer
 
 class FC(Layer):
     def __init__(self, input_size : int, output_size : int, name : str, initialize_method : str="random"):
@@ -40,18 +40,24 @@ class FC(Layer):
         """
         # NOTICE: BATCH_SIZE is the first dimension of A_prev
         self.input_shape = A_prev.shape
+        # print(f'self.input_shape in FC forward: {self.input_shape}')
         A_prev_tmp = np.copy(A_prev)
 
         # TODO: Implement forward pass for fully connected layer
         if len(A_prev_tmp.shape) == 4: # check if A_prev is output of convolutional layer
-            batch_size = A_prev_tmp.shape[0] * A_prev_tmp.shape[1] * A_prev_tmp.shape[2]
+            batch_size = A_prev_tmp.shape[1] * A_prev_tmp.shape[2] * A_prev_tmp.shape[3]
             A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
         self.reshaped_shape = A_prev_tmp.shape
         
         # TODO: Forward part
         W, b = self.parameters
+        # print(f'A_prev_tmp.shape: {A_prev_tmp.shape}')
+        # print(f'W.shape: {W.shape}')
+        # print(f'b.shape: {b.shape}')
         Z = A_prev_tmp @ W + b
+        # print(f"output of FC layer: {Z}")
         return Z
+
     
     def backward(self, dZ, A_prev):
         """
@@ -66,7 +72,7 @@ class FC(Layer):
         prev_is_conv = False
         A_prev_tmp = np.copy(A_prev)
         if len(A_prev_tmp.shape) == 4: # check if A_prev is output of convolutional layer
-            batch_size = A_prev_tmp.shape[0] * A_prev_tmp.shape[1] * A_prev_tmp.shape[2]
+            batch_size = A_prev_tmp.shape[1] * A_prev_tmp.shape[2] * A_prev_tmp.shape[3]
             A_prev_tmp = A_prev_tmp.reshape(batch_size, -1).T
             prev_is_conv = True
         self.reshaped_shape = A_prev_tmp.shape
@@ -77,10 +83,14 @@ class FC(Layer):
         dW = A_prev_tmp.T @ dZ / A_prev.shape[0]
         # db = np.sum(None, axis=1, keepdims=True) / None
         db = np.sum(dZ, axis=0, keepdims=True) / A_prev_tmp.shape[0]
+        # print(f'dZ.shape: {dZ.shape}')
+        # print(f'W.T.shape: {W.T.shape}')
         dA_prev = dZ @ W.T
+        # print(f"dA_prev.shape: {dA_prev.shape}")
         grads = [dW, db]
         # reshape dA_prev to the shape of A_prev
         if prev_is_conv:    # check if A_prev is output of convolutional layer
+            # print(f'self.input_shape in FC backward: {self.input_shape}')
             dA_prev = dA_prev.T.reshape(self.input_shape)
         return dA_prev, grads
     

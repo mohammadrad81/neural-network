@@ -19,7 +19,8 @@ class Model:
                  layers_list: List[Tuple[str, MaxPool2D | FC | Conv2D]],
                  criterion: MeanSquaredError | BinaryCrossEntropy,
                  optimizer: Adam | GD,
-                 name: str=None):
+                 name: str="model",
+                 load: bool=False):
         """
         Initialize the model.
         args:
@@ -28,13 +29,14 @@ class Model:
             optimizer: optimizer
             name: name of the model
         """
-        if name is None:
+        # if name is None:
+        if load:
+            self.model, self.criterion, self.optimizer, self.layers_names = self.load_model(name)
+        else:
             self.model: Dict[str, Layer] = {l[0]: l[1] for l in layers_list}
             self.criterion: Loss = criterion
             self.optimizer: Adam | GD = optimizer
             self.layers_names = [l[0] for l in layers_list]
-        else:
-            self.model, self.criterion, self.optimizer, self.layers_names = self.load_model(name)
     
     def is_layer(self, layer):
         """
@@ -129,6 +131,7 @@ class Model:
         # TODO: Implement one epoch of training
         tmp = self.forward(x)
         AL = tmp[-1]
+        # print(f"output: {AL}")
         loss = self.criterion.compute(AL, y)
         dAL = self.criterion.backward(AL, y)
         grads = self.backward(dAL, tmp, x)

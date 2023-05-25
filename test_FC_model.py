@@ -11,6 +11,7 @@ from src.layers.fullyconnected import FC
 from src.losses.meansquarederror import MeanSquaredError
 from src.model import Model
 from src.optimizers.gradientdescent import GD
+from src.activations import ReLU, Sigmoid, Tanh
 
 
 # In[2]:
@@ -87,25 +88,25 @@ y_train_arr = 10 * y_train_arr / np.max(y_train_arr)
 
 fc_1 = FC(input_size=8, output_size=100, name='fc1')
 fc_2 = FC(input_size=100, output_size=100, name='fc2')
-# fc_3 = FC(input_size=100, output_size=100, name='fc3')
+fc_3 = FC(input_size=100, output_size=100, name='fc3')
 fc_4 = FC(input_size=100, output_size=1, name='fc4')
 
 # In[14]:
 
 
 linear = LinearActivation()
-
+relu = ReLU()
 
 # In[15]:
 
 
 layers_list=[
     ('fc1', fc_1),
-    ('linear', linear),
+    ('linear', ReLU()),
     ('fc2', fc_2),
-    ('linear', linear),
-    # ('fc3', fc_3),
-    # ('linear', linear),
+    ('linear', ReLU()),
+    ('fc3', fc_3),
+    ('linear', ReLU()),
     ('fc4', fc_4),
     ('linear', linear),
 ]

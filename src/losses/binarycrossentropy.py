@@ -1,5 +1,6 @@
 import numpy as np
-from .loss import Loss
+from src.losses.loss import Loss
+
 
 class BinaryCrossEntropy(Loss):
     def __init__(self) -> None:
@@ -30,4 +31,5 @@ class BinaryCrossEntropy(Loss):
         # hint: use the np.divide function
         # TODO: Implement backward pass for binary cross entropy loss
         y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
-        return (y_pred - y_true) / (y_pred * (1 - y_pred)) / y_true.size
+        d = -((y_true / y_pred) - ((1 - y_true) / (1 - y_pred))) / len(y_pred)
+        return d

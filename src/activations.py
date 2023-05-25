@@ -38,7 +38,9 @@ class Sigmoid(Activation):
                 sigmoid(x)
         """
         # TODO: Implement sigmoid activation function
-        A = 1 / (1 + np.exp(-Z))
+        ex = np.exp(-Z)
+        exp1 = 1 + ex
+        A = 1 / exp1
         return A
 
     def backward(self, dA: np.ndarray, Z: np.ndarray) -> np.ndarray:
