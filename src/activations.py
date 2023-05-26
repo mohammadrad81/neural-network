@@ -112,7 +112,7 @@ class Tanh(Activation):
         """
         A = self.forward(Z)
         # TODO: Implement backward pass for tanh activation function
-        dZ = 1 - A**2
+        dZ = (1 - A**2) * dA
         return dZ
     
 class LinearActivation(Activation):
