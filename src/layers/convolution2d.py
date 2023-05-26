@@ -3,7 +3,7 @@ from src.layers.layer import Layer
 
 
 class Conv2D(Layer):
-    def __init__(self, in_channels, out_channels, name, kernel_size=(1, 1), stride=(1, 1), padding=(1, 1),
+    def __init__(self, in_channels, out_channels, name, kernel_size=(1, 1), stride=(1, 1), padding=(0, 0),
                  initialize_method="random"):
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -107,10 +107,10 @@ class Conv2D(Layer):
         Z = np.zeros(shape=(batch_size, H, W, self.out_channels))
         A_prev_pad = self.pad(A_prev, self.padding)  # hint: use self.pad()
         for i in range(batch_size):
-            for h in range(0, H, stride_h):
+            for h in range(H):
                 h_start = h * stride_h
                 h_end = h_start + kernel_size_h
-                for w in range(0, W, stride_w):
+                for w in range(W):
                     w_start = w * stride_w
                     w_end = w_start + kernel_size_w
                     for c in range(self.out_channels):
@@ -145,10 +145,10 @@ class Conv2D(Layer):
         for i in range(batch_size):
             a_prev_pad = A_prev_pad[i]
             da_prev_pad = dA_prev_pad[i]
-            for h in range(0, H, stride_h):
+            for h in range(H):
                 h_start = h * stride_h
                 h_end = h_start + kernel_size_h
-                for w in range(0, W, stride_w):
+                for w in range(W):
                     w_start = w * stride_w
                     w_end = w_start + kernel_size_w
                     for c in range(C):
