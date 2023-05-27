@@ -38,10 +38,10 @@ im = im.astype('float64')
 # plt.imshow(im)
 # plt.show()
 
-cnn1 = Conv2D(in_channels=1, out_channels=1, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0), name='cnn1')
+cnn1 = Conv2D(in_channels=1, out_channels=1, kernel_size=(10, 10), stride=(1, 1), padding=(0, 0), name='cnn1')
 activation = Tanh()
 cnn2 = Conv2D(in_channels=1, out_channels=1, kernel_size=(5, 5), stride=(1, 1), padding=(0, 0), name='cnn2')
-fully_connected1 = FC(input_size=20 * 20 * 1 * 1, output_size=1, name='fc1')
+fully_connected1 = FC(input_size=15 * 15 * 1 * 1, output_size=1, name='fc1')
 # fully_connected2 = FC(input_size=5*5, output_size=1, name='fc2')
 sigmoid = Sigmoid()
 layers_list = [

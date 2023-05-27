@@ -88,9 +88,9 @@ y_train_arr = y_train_arr / max_of_y
 
 
 fc_1 = FC(input_size=8, output_size=100, name='fc1')
-fc_2 = FC(input_size=100, output_size=100, name='fc2')
-# fc_3 = FC(input_size=100, output_size=100, name='fc3')
-fc_4 = FC(input_size=100, output_size=1, name='fc4')
+fc_2 = FC(input_size=100, output_size=60, name='fc2')
+# fc_3 = FC(input_size=80, output_size=60, name='fc3')
+fc_4 = FC(input_size=60, output_size=1, name='fc4')
 
 # In[14]:
 
@@ -103,13 +103,13 @@ relu = ReLU()
 
 layers_list=[
     ('fc1', fc_1),
-    ('linear', ReLU()),
+    ('linear', Tanh()),
     ('fc2', fc_2),
-    ('linear', ReLU()),
+    ('linear', Tanh()),
     # ('fc3', fc_3),
     # ('linear', ReLU()),
     ('fc4', fc_4),
-    ('linear', linear),
+    ('linear', LinearActivation()),
 ]
 
 
@@ -126,14 +126,15 @@ model = Model(
 # In[17]:
 
 
-model.train(X_train_arr, y_train_arr, epochs=10000)
+model.train(X_train_arr, y_train_arr, epochs=100000)
 
-print("**********")
-print("predicted values:")
-print(model.predict(X_train_arr[:10]) * max_of_y)
-print("**********")
-print("actual values:")
-print(y_train_arr[:10] * max_of_y)
+# print("**********")
+# print("predicted values:")
+# print(model.predict(X_train_arr[:10]) * max_of_y)
+# print("**********")
+# print("actual values:")
+model.save(name="regressor.pkl")
+print("error: ", MeanSquaredError().compute(y_pred=model.predict(X_train_arr) * max_of_y, y_true=y_train_arr * max_of_y))
 
 
 

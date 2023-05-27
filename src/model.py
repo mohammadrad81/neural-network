@@ -15,6 +15,7 @@ from src.optimizers.gradientdescent import GD
 from src.optimizers.adam import Adam
 
 class Model:
+
     def __init__(self,
                  layers_list: List[Tuple[str, MaxPool2D | FC | Conv2D]],
                  criterion: MeanSquaredError | BinaryCrossEntropy,
@@ -33,7 +34,7 @@ class Model:
         if load:
             self.model, self.criterion, self.optimizer, self.layers_names = self.load_model(name)
         else:
-            self.model: Dict[str, Layer] = {l[0]: l[1] for l in layers_list}
+            self.model: Dict[str, Layer | Activation] = {l[0]: l[1] for l in layers_list}
             self.criterion: Loss = criterion
             self.optimizer: Adam | GD = optimizer
             self.layers_names = [l[0] for l in layers_list]
